@@ -1,0 +1,19 @@
+#!/bin/sh
+mon1="DP-2" # Primary monitor
+ws_limit=5 # how many workspaces on the primary monitor
+ 
+handleworkspaces() {
+    if [[ ${1:0:15} == "createworkspace" ]]; then
+        ws=$(( ${1:17:19} ))
+        if (( $(($ws <= $ws_limit)) )); then
+            hyprctl dispatch moveworkspacetomonitor "$ws $mon1"
+        fi
+    elif [[ ${1:0:9} == "workspace" ]]; then
+        ws=$(( ${1:11:13} ))
+        if (( $(($ws <= $ws_limit)) )); then
+            hyprctl dispatch moveworkspacetomonitor  "$ws $mon1"
+        fi
+    fi
+}
+ 
+socat - UNIX-CONNECT:/tmp/hypr/$(echo $HYPRLAND_INSTANCE_SIGNATURE)/.socket2.sock | while read line; do handleworkspaces $line; done
